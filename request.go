@@ -107,7 +107,12 @@ func (g *GRequest) WithHeader(key string, value interface{}) *GRequest {
 	}
 
 	if typetools.IsStringlikeType(value) {
-		g.addHeader(key, typetools.EnsureString(value))
+		stv := typetools.EnsureString(value)
+		if stv == "" {
+			g.addError(errtools.InvalidFieldError("header value cannot be empty"))
+		}
+
+		g.addHeader(key, stv)
 	} else {
 		g.addError(errtools.InvalidTypeError("header value must be a string or string-like type"))
 	}
@@ -151,6 +156,18 @@ func (g *GRequest) Validate() error {
 func (g *GRequest) Execute() (*GResponse, error) {
 	if err := g.Validate(); err != nil {
 		return nil, err
+	}
+
+	userAgentFound := false
+	for k := range g.headers {
+		if strings.ToLower(k) == "user-agent" {
+			userAgentFound = true
+			break
+		}
+	}
+
+	if !userAgentFound {
+		g.addHeader("User-Agent", "Clysec GREQ/1.0")
 	}
 
 	req, err := http.NewRequest(string(g.Method), g.Url, g.body)

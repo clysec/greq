@@ -2,7 +2,7 @@ module github.com/clysec/greq
 
 go 1.22.3
 
-require github.com/scheiblingco/gofn v1.2.0
+require github.com/scheiblingco/gofn v1.2.1
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
