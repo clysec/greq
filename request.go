@@ -153,6 +153,10 @@ func (g *GRequest) Validate() error {
 	return nil
 }
 
+// TODO: Proxy from environment
+// TODO: Timeout(s)
+// TODO: Redirects
+// TODO: Force attempt HTTP/2
 func (g *GRequest) Execute() (*GResponse, error) {
 	if err := g.Validate(); err != nil {
 		return nil, err

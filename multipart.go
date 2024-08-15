@@ -82,6 +82,10 @@ func (m *MultipartField) WithPipe(pipe *io.PipeReader) *MultipartField {
 	return m
 }
 
+// TODO: Autodetect content type
+// https://github.com/gabriel-vasile/mimetype
+// https://github.com/rakyll/magicmime
+// https://github.com/h2non/filetype
 func (m *MultipartField) WithFile(file *os.File, contentType *string) *MultipartField {
 	cType := "application/octet-stream"
 	if contentType != nil {

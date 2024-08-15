@@ -69,6 +69,12 @@ func (r *GResponse) BodyUnmarshalXml(v interface{}) error {
 	return xml.NewDecoder(r.Response.Body).Decode(v)
 }
 
+// TODO: AutoUnmarshal, detect content type and unmarshal accordingly
+// json: application/json
+// xml: application/xml
+// yml: application/yaml
+// php: application/php
+
 func (r *GResponse) Close() {
 	if r.bodyRead {
 		return
