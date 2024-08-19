@@ -1,4 +1,4 @@
-package auth
+package greq
 
 import (
 	"encoding/base64"

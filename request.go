@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
-	"github.com/clysec/greq/auth"
 	"github.com/scheiblingco/gofn/errtools"
 	"github.com/scheiblingco/gofn/typetools"
 )
@@ -29,6 +29,7 @@ type GRequest struct {
 
 	client  *http.Client
 	headers map[string]string
+	query   *url.Values
 	body    io.Reader
 
 	errs []error
@@ -83,7 +84,7 @@ func (g *GRequest) WithClient(client *http.Client) *GRequest {
 // // An Authorization type can be passed to multiple requests,
 // // which is useful in the case of Oauth2 or other token-based requests
 // // that can re-use the same token for multiple requests
-func (g *GRequest) WithAuth(auth auth.Authorization) *GRequest {
+func (g *GRequest) WithAuth(auth Authorization) *GRequest {
 	if err := auth.Prepare(); err != nil {
 		g.addError(err)
 	}
@@ -136,6 +137,70 @@ func (g *GRequest) WithHeaders(headers map[string]interface{}) *GRequest {
 	return g
 }
 
+func (g *GRequest) WithQueryParam(key, value string) *GRequest {
+	if g.query == nil {
+		g.query = &url.Values{}
+	}
+
+	g.query.Add(key, value)
+
+	return g
+}
+
+// Add query parameters to the request
+func (g *GRequest) WithQueryParams(params interface{}) *GRequest {
+	if g.query == nil {
+		g.query = &url.Values{}
+	}
+
+	switch val := params.(type) {
+	case url.Values:
+		for k, v := range val {
+			for _, v2 := range v {
+				g.query.Add(k, v2)
+			}
+		}
+
+	case map[string]string:
+		for k, v := range val {
+			g.query.Add(k, v)
+		}
+
+	case map[string][]string:
+		for k, v := range val {
+			for _, v2 := range v {
+				g.query.Add(k, v2)
+			}
+		}
+
+	case map[string][]byte:
+		for k, v := range val {
+			g.query.Add(k, string(v))
+		}
+
+	case map[string]interface{}:
+		for k, v := range val {
+			if typetools.IsStringlikeType(v) || typetools.IsNumericType(v) {
+				g.query.Add(k, typetools.EnsureString(v))
+			} else {
+				if vt, ok := v.([]string); ok {
+					for _, v2 := range vt {
+						g.query.Add(k, v2)
+					}
+				} else if vt, ok := v.(bool); ok {
+					g.query.Add(k, fmt.Sprintf("%t", vt))
+				} else {
+					g.addError(errtools.InvalidTypeError(fmt.Sprintf("field %s - form value must be a string, string slice, or string-like type", k)))
+				}
+			}
+		}
+	default:
+		g.addError(errtools.InvalidTypeError("query params must be a map[string]string, map[string][]string, map[string][]byte, map[string]interface{}, or url.Values"))
+	}
+
+	return g
+}
+
 // Validate the request to ensure no errors have popped up during creation
 func (g *GRequest) Validate() error {
 	if len(g.errs) > 0 {
@@ -160,6 +225,16 @@ func (g *GRequest) Validate() error {
 func (g *GRequest) Execute() (*GResponse, error) {
 	if err := g.Validate(); err != nil {
 		return nil, err
+	}
+
+	if g.query != nil && len(*g.query) != 0 {
+		if strings.Contains(g.Url, "?") {
+			g.Url += "&"
+		} else {
+			g.Url += "?"
+		}
+
+		g.Url += g.query.Encode()
 	}
 
 	userAgentFound := false

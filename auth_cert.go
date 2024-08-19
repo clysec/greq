@@ -1,4 +1,4 @@
-package auth
+package greq
 
 import (
 	"crypto/tls"
@@ -35,6 +35,10 @@ func (ca *ClientCertificateAuth) Apply(addHeaderFunc func(key, value string), se
 	return nil
 }
 
+func NewClientCertificateAuth() *ClientCertificateAuth {
+	return &ClientCertificateAuth{}
+}
+
 func (ca *ClientCertificateAuth) FromX509(certFile, keyFile string) *ClientCertificateAuth {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
@@ -66,18 +70,18 @@ func (ca *ClientCertificateAuth) WithInsecureSkipVerify(insecureSkipVerify bool)
 	return ca
 }
 
-func (ca *ClientCertificateAuth) FromPkcs12(pkcs12File, password string) *ClientCertificateAuth {
+func (ca *ClientCertificateAuth) FromPKCS12(pkcs12File, password string) *ClientCertificateAuth {
 	contents, err := os.ReadFile(pkcs12File)
 	if err != nil {
 		panic(err)
 	}
 
-	ca.FromPkcs12Bytes(contents, password)
+	ca.FromPKCS12Bytes(contents, password)
 
 	return ca
 }
 
-func (ca *ClientCertificateAuth) FromPkcs12Bytes(pkcs12Data []byte, password string) *ClientCertificateAuth {
+func (ca *ClientCertificateAuth) FromPKCS12Bytes(pkcs12Data []byte, password string) *ClientCertificateAuth {
 	privkey, certificate, cachain, err := pkcs12.DecodeChain(pkcs12Data, password)
 	if err != nil {
 		panic(err)

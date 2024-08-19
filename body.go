@@ -8,7 +8,6 @@ import (
 	"io"
 	"mime/multipart"
 	"net/url"
-	"strings"
 
 	"github.com/scheiblingco/gofn/errtools"
 	"github.com/scheiblingco/gofn/typetools"
@@ -46,6 +45,8 @@ func (g *GRequest) WithJSONBody(body interface{}, contentType *string) *GRequest
 		cType = *contentType
 	}
 
+	g = g.WithHeader("Content-Type", cType)
+
 	if val, ok := body.(string); ok {
 		return g.WithStringBody(val).WithHeader("Content-Type", cType)
 	}
@@ -56,10 +57,12 @@ func (g *GRequest) WithJSONBody(body interface{}, contentType *string) *GRequest
 
 	buf := new(bytes.Buffer)
 
-	err := json.NewEncoder(buf).Encode(body)
+	err := json.NewEncoder(buf).Encode(&body)
 	if err != nil {
 		g.addError(err)
 	}
+
+	g.body = buf
 
 	return g
 }
@@ -75,12 +78,16 @@ func (g *GRequest) WithXMLBody(body interface{}, contentType *string) *GRequest 
 		cType = *contentType
 	}
 
-	if val, ok := body.(string); ok {
-		return g.WithStringBody(val).WithHeader("Content-Type", cType)
-	}
+	g = g.WithHeader("Content-Type", cType)
 
-	if val, ok := body.([]byte); ok {
-		return g.WithByteBody(val).WithHeader("Content-Type", cType)
+	switch val := body.(type) {
+	case string:
+		return g.WithStringBody(val)
+	case []byte:
+		return g.WithByteBody(val)
+	case io.Reader:
+		return g.WithReaderBody(val)
+
 	}
 
 	buf := new(bytes.Buffer)
@@ -89,6 +96,8 @@ func (g *GRequest) WithXMLBody(body interface{}, contentType *string) *GRequest 
 	if err != nil {
 		g.addError(err)
 	}
+
+	g.body = buf
 
 	return g
 }
@@ -183,66 +192,6 @@ func (g *GRequest) WithMultipartFormBody(body []*MultipartField) *GRequest {
 	g.body = buf
 
 	return g.WithHeader("Content-Type", writer.FormDataContentType())
-}
-
-// Add query parameters to the request
-func (g *GRequest) WithQueryParams(params interface{}) *GRequest {
-	data := url.Values{}
-
-	switch val := params.(type) {
-	case url.Values:
-		data = val
-
-	case map[string]string:
-		for k, v := range val {
-			data.Add(k, v)
-		}
-
-	case map[string][]string:
-		for k, v := range val {
-			for _, v2 := range v {
-				data.Add(k, v2)
-			}
-		}
-
-	case map[string][]byte:
-		for k, v := range val {
-			data.Add(k, string(v))
-		}
-
-	case map[string]interface{}:
-		for k, v := range val {
-			if typetools.IsStringlikeType(v) || typetools.IsNumericType(v) {
-				data.Add(k, typetools.EnsureString(v))
-			} else {
-				if vt, ok := v.([]string); ok {
-					for _, v2 := range vt {
-						data.Add(k, v2)
-					}
-				} else if vt, ok := v.(bool); ok {
-					data.Add(k, fmt.Sprintf("%t", vt))
-				} else {
-					g.addError(errtools.InvalidTypeError(fmt.Sprintf("field %s - form value must be a string, string slice, or string-like type", k)))
-				}
-			}
-		}
-	default:
-		g.addError(errtools.InvalidTypeError("query params must be a map[string]string, map[string][]string, map[string][]byte, map[string]interface{}, or url.Values"))
-	}
-
-	if len(g.errs) > 0 {
-		return g
-	}
-
-	if strings.Contains(g.Url, "?") {
-		g.Url += "&"
-	} else {
-		g.Url += "?"
-	}
-
-	g.Url += data.Encode()
-
-	return g
 }
 
 // TODO: Add support for GraphQL Request

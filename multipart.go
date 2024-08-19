@@ -7,6 +7,8 @@ import (
 	"net/textproto"
 	"os"
 	"strings"
+
+	"github.com/scheiblingco/gofn/typetools"
 )
 
 type MultipartField struct {
@@ -27,6 +29,12 @@ func MultipartFieldsFromMap(m map[string]interface{}) ([]*MultipartField, error)
 
 	for k, v := range m {
 		field := NewMultipartField(k)
+
+		if typetools.IsStringlikeType(v) || typetools.IsNumericType(v) {
+			field = field.WithStringValue(typetools.EnsureString(v))
+			fields = append(fields, field)
+			continue
+		}
 
 		switch vc := v.(type) {
 		case string:

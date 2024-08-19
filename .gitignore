@@ -1,0 +1,5 @@
+testcmd/
+*_bin*
+*debug_*
+node_modules/
+docs/.vitepress/cache

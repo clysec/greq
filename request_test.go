@@ -1,10 +1,10 @@
 package greq_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/clysec/greq"
-	"github.com/clysec/greq/auth"
 )
 
 type HttpbinResponse struct {
@@ -14,12 +14,41 @@ type HttpbinResponse struct {
 	Url     string                 `json:"url"`
 	Form    map[string]interface{} `json:"form"`
 	Body    string                 `json:"data"`
+	Json    map[string]interface{} `json:"json"`
+}
+
+type TestBody struct {
+	Hello string `json:"hello" xml:"hello"`
+}
+
+func TestX(t *testing.T) {
+	auth := greq.BasicAuth{
+		Username: "user",
+		Password: "password",
+	}
+
+	response, err := greq.GetRequest("https://httpbin.org/get").
+		// Add basic authentication
+		WithAuth(&auth).
+		Execute()
+
+	if err != nil {
+		panic(err)
+	}
+
+	bodyString, err := response.BodyString()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(bodyString)
 }
 
 func TestGetRequest(t *testing.T) {
 	resp, err := greq.GetRequest("https://httpbin.org/get").
 		WithHeader("Accept", "application/json").
-		WithAuth(&auth.BasicAuth{Username: "username", Password: "password"}).
+		WithQueryParams(map[string]string{"key": "value"}).
+		WithAuth(&greq.BasicAuth{Username: "username", Password: "password"}).
 		Execute()
 
 	if err != nil {
