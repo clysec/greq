@@ -6,6 +6,10 @@ GREQ is a simple request library for go with a simple API. It is designed to be 
 go get github.com/clysec/greq
 ```
 
+## Documentation
+You can find the full documentation at [https://greq.clysec.net](https://greq.clysec.net)
+
+
 ## Usage
 ### Simple GET Request
 ```go
