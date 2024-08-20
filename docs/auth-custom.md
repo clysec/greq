@@ -5,7 +5,7 @@ To add custom authentication modules to a request, you need to create a struct t
 
 type Auth interface {
     Prepare() error
-    Apply(addHeaderFunc func(key, value string), setTransportFunc(transport *http.Transport))
+    Apply(addHeaderFunc func(key, value string), setTransportFunc(transport http.RoundTripper))
 }
 ```
 
@@ -25,7 +25,7 @@ func (b BasicAuth) Prepare() error {
     return nil
 }
 
-func (b BasicAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport *http.Transport)) {
+func (b BasicAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport http.RoundTripper)) {
     
     // Adds a request Authorization header with the basic auth credentials
     addHeaderFunc(
@@ -48,7 +48,7 @@ func (c CertificateAuth) Prepare() error {
     return nil
 }
 
-func (c CertificateAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport *http.Transport)) {
+func (c CertificateAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport http.RoundTripper)) {
     // Load the certificate and key files
     cert, err := tls.LoadX509KeyPair(c.CertFile, c.KeyFile)
     if err != nil {

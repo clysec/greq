@@ -1,6 +1,7 @@
 package greq
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -51,7 +52,7 @@ func (g *GRequest) addHeader(key, value string) {
 }
 
 // Add a custom transport to the http client
-func (g *GRequest) addTransport(transport *http.Transport) {
+func (g *GRequest) addTransport(transport http.RoundTripper) {
 	if g.client == nil {
 		g.client = &http.Client{Transport: transport}
 	} else {
@@ -64,6 +65,28 @@ func (g *GRequest) bodyAccepted() {
 	if g.Method == GET || g.Method == DELETE {
 		g.addError(errtools.BodyNotAcceptedError("cannot have a body with a GET or DELETE request"))
 	}
+}
+
+// Ignore TLS Certificate Errors
+func (g *GRequest) TlsSetNovalidate() *GRequest {
+	if g.client == nil {
+		g.client = &http.Client{}
+	}
+
+	if g.client.Transport == nil {
+		g.client.Transport = http.DefaultTransport
+	}
+
+	switch vt := g.client.Transport.(type) {
+	case *http.Transport:
+		vt.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	case http.RoundTripper:
+		g.client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
+
+	return g
 }
 
 // Add a custom HTTP client to the request

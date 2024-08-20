@@ -15,11 +15,11 @@ type ClientCertificateAuth struct {
 	InsecureSkipVerify bool
 }
 
-func (ca *ClientCertificateAuth) Prepare() error {
+func (ca ClientCertificateAuth) Prepare() error {
 	return nil
 }
 
-func (ca *ClientCertificateAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport *tls.Config)) error {
+func (ca ClientCertificateAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport http.RoundTripper)) error {
 	customTransport := &http.Transport{
 		TLSClientConfig: &tls.Config{
 			Certificates:       []tls.Certificate{ca.ClientCertificate},
@@ -31,7 +31,7 @@ func (ca *ClientCertificateAuth) Apply(addHeaderFunc func(key, value string), se
 		customTransport.TLSClientConfig.RootCAs = ca.CaCertificates
 	}
 
-	setTransportFunc(customTransport.TLSClientConfig)
+	setTransportFunc(customTransport)
 	return nil
 }
 

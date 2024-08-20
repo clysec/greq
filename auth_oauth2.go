@@ -208,7 +208,7 @@ func (oa *Oauth2Auth) Prepare() error {
 
 }
 
-func (oa *Oauth2Auth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport *http.Transport)) error {
+func (oa *Oauth2Auth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport http.RoundTripper)) error {
 	if oa.token == nil || oa.TokenExpired() {
 		err := oa.Prepare()
 		if err != nil {

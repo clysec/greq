@@ -15,7 +15,7 @@ func (ba *BasicAuth) Prepare() error {
 	return nil
 }
 
-func (ba *BasicAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport *http.Transport)) error {
+func (ba *BasicAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport http.RoundTripper)) error {
 	addHeaderFunc("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(ba.Username+":"+ba.Password)))
 	return nil
 }

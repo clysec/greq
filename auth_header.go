@@ -14,7 +14,7 @@ func (ha *HeaderAuth) Prepare() error {
 	return nil
 }
 
-func (ha *HeaderAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport *http.Transport)) error {
+func (ha *HeaderAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport http.RoundTripper)) error {
 	addHeaderFunc(ha.Key, ha.Value)
 	return nil
 }

@@ -54,7 +54,7 @@ func (ja *JwtAuth) Prepare() error {
 	return nil
 }
 
-func (ja *JwtAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport *http.Transport)) error {
+func (ja *JwtAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport http.RoundTripper)) error {
 	tokenString, err := ja.jwt.SignedString(ja.Secret)
 	if err != nil {
 		return err

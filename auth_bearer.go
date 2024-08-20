@@ -17,7 +17,7 @@ func (ha *BearerAuth) Prepare() error {
 	return nil
 }
 
-func (ha *BearerAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport *http.Transport)) error {
+func (ha *BearerAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport http.RoundTripper)) error {
 	if ha.Prefix == "" {
 		ha.Prefix = "Bearer"
 	}

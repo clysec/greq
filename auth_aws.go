@@ -18,7 +18,7 @@ func (a *AwsSignatureAuth) Prepare() error {
 	return fmt.Errorf("not implemented")
 }
 
-func (a *AwsSignatureAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport *http.Transport)) error {
+func (a *AwsSignatureAuth) Apply(addHeaderFunc func(key, value string), setTransportFunc func(transport http.RoundTripper)) error {
 	// TODO: Implement
 	return fmt.Errorf("not implemented")
 }
