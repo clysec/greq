@@ -1,12 +1,6 @@
 # GREQ - Simple Go Request Library
 GREQ is a simple request library for go with a simple API. It is designed to be simple to use, and to (as far as possible) not require a lot of documentation. The goal when writing this was as I, for the final time, got fed up with forgetting how to do a multipart request in go and having to look it up, and started adding the request library to our go function library ([gofn](http://github.com/scheiblingco/gofn)). As it grew in complexity, I decided to split it out into its own library.
 
-
-
-
-
-
-
 ## Installation
 ```bash
 go get github.com/clysec/greq
